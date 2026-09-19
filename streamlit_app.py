@@ -1,42 +1,49 @@
 import streamlit as st
 import numpy as np
-import pandas as pd
+import matplotlib.pyplot as plt
 
-# ตั้งค่าหน้าเว็บ
 st.set_page_config(page_title="Math Function Plotter", page_icon="📈", layout="centered")
 
 st.title("📈 Simple Function Plotter")
 st.write("พิมพ์ฟังก์ชันคณิตศาสตร์ $f(x)$ ที่ต้องการ เพื่อคำนวณและวาดกราฟทันที")
 
-# แถบควบคุมด้านข้าง (Sidebar) หรือในหน้าหลัก
-with st.expander("⚙️ ปรับแต่งช่วงแกน X", expanded=True):
-    col1, col2, col3 = st.columns(3)
-    with col1:
+# แผงตั้งค่าแกน X และ แกน Y
+with st.expander("⚙️ ปรับแต่งช่วงแกน X และ แกน Y", expanded=True):
+    col_x1, col_x2 = st.columns(2)
+    with col_x1:
         x_min = st.number_input("x ต่ำสุด (Min)", value=-10.0, step=1.0)
-    with col2:
+    with col_x2:
         x_max = st.number_input("x สูงสุด (Max)", value=10.0, step=1.0)
-    with col3:
-        num_points = st.slider("จำนวนจุดคำนวณ", min_value=50, max_value=1000, value=300, step=50)
 
-# ช่องรับฟังก์ชันจากผู้ใช้
+    # ตัวเลือกควบคุมแกน Y
+    custom_y = st.checkbox("กำหนดช่วงแกน Y เอง (ไม่ใช้ Auto-scale)", value=False)
+    
+    y_min, y_max = None, None
+    if custom_y:
+        col_y1, col_y2 = st.columns(2)
+        with col_y1:
+            y_min = st.number_input("y ต่ำสุด (Min)", value=-50.0, step=5.0)
+        with col_y2:
+            y_max = st.number_input("y สูงสุด (Max)", value=100.0, step=5.0)
+
+# ช่องรับฟังก์ชัน
 func_input = st.text_input(
     "พิมพ์ฟังก์ชัน f(x):",
-    value="sin(x)",
-    help="สามารถใช้คำนวณทั่วไป เช่น x**2, sin(x), cos(x), exp(x), sqrt(x), abs(x)"
+    value="x**2",
+    help="เช่น x**2, sin(x), exp(x), x**3 - 5*x"
 )
+st.caption("💡 ตัวอย่าง: `x**2`, `sin(x) * 10`, `exp(x)`, `x**3 - 4*x`")
 
-# คำอธิบายตัวอย่างฟังก์ชัน
-st.caption("💡 ตัวอย่างที่พิมพ์ได้: `x**2 - 4`, `sin(x) * cos(x)`, `exp(-x**2)`, `x**3 - 3*x`")
-
-# คำนวณและวาดกราฟ
+# ตรวจสอบความถูกต้องของช่วงแกน
 if x_min >= x_max:
-    st.error("ค่า 'x ต่ำสุด' ต้องน้อยกว่า 'x สูงสุด' ครับ")
+    st.error("ค่า 'x ต่ำสุด' ต้องน้อยกว่า 'x สูงสุด'")
+elif custom_y and y_min >= y_max:
+    st.error("ค่า 'y ต่ำสุด' ต้องน้อยกว่า 'y สูงสุด'")
 else:
     try:
-        # สร้าง array ของค่า x
-        x = np.linspace(x_min, x_max, num_points)
+        # สุ่มจุดแกน X
+        x = np.linspace(x_min, x_max, 500)
 
-        # เตรียมสภาพแวดล้อมที่ปลอดภัยสำหรับคำนวณฟังก์ชันทางคณิตศาสตร์
         safe_dict = {
             "x": x,
             "np": np,
@@ -51,16 +58,31 @@ else:
             "e": np.e,
         }
 
-        # คำนวณค่า y จากข้อความที่พิมพ์
+        # คำนวณค่า y
         y = eval(func_input, {"__builtins__": {}}, safe_dict)
 
-        # แปลงเป็น DataFrame เพื่อพล็อตด้วย st.line_chart
-        df = pd.DataFrame({"x": x, "f(x)": y})
-        
-        st.subheader(f"📊 กราฟของ $f(x) = {func_input}$")
-        st.line_chart(df, x="x", y="f(x)")
+        # วาดกราฟด้วย Matplotlib
+        fig, ax = plt.subplots(figsize=(8, 4.5))
+        ax.plot(x, y, label=f"$f(x) = {func_input}$", color="#1f77b4", linewidth=2)
+
+        # ลากเส้นแกน 0 กลางกราฟเพื่อให้อ่านง่าย
+        ax.axhline(0, color="gray", linestyle="--", linewidth=0.8, alpha=0.7)
+        ax.axvline(0, color="gray", linestyle="--", linewidth=0.8, alpha=0.7)
+
+        # ล็อกช่วงแกน Y ถ้าผู้ใช้เลือก
+        if custom_y:
+            ax.set_ylim(y_min, y_max)
+
+        ax.set_xlim(x_min, x_max)
+        ax.set_xlabel("x")
+        ax.set_ylabel("f(x)")
+        ax.grid(True, linestyle=":", alpha=0.6)
+        ax.legend()
+
+        # แสดงผลกราฟบน Streamlit
+        st.pyplot(fig)
 
     except ZeroDivisionError:
-        st.error("เกิดข้อผิดพลาด: มีการหารด้วยศูนย์ในช่วงค่า x ดังกล่าว")
+        st.error("เกิดข้อผิดพลาด: มีการหารด้วยศูนย์")
     except Exception as e:
         st.error(f"รูปแบบฟังก์ชันไม่ถูกต้อง: {e}")
