@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binary Birthday Game</title>
+    <!-- โหลดไลบรารี PyScript -->
+    <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css">
+    <script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
+    <style>
+        body { font-family: sans-serif; background: #0f172a; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+        .card { background: #1e293b; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); text-align: center; max-width: 450px; width: 90%; }
+        .numbers { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 20px 0; }
+        .num-badge { background: #334155; padding: 8px; border-radius: 6px; font-weight: bold; }
+        .btn { padding: 10px 20px; font-size: 16px; border: none; border-radius: 6px; cursor: pointer; margin: 5px; font-weight: bold; }
+        .btn-yes { background: #10b981; color: white; }
+        .btn-no { background: #ef4444; color: white; }
+        .btn-reset { background: #3b82f6; color: white; margin-top: 15px; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>🪄 เกมทายวันเกิดด้วย Python</h2>
+        <div id="game-container">
+            <h3 id="card-title">กำลังโหลด Python...</h3>
+            <div id="card-numbers" class="numbers"></div>
+            <div>
+                <button id="btn-yes" class="btn btn-yes" style="display:none;">มีวันเกิดฉัน (Yes)</button>
+                <button id="btn-no" class="btn btn-no" style="display:none;">ไม่มี (No)</button>
+            </div>
+        </div>
+        <div id="result-container" style="display:none;">
+            <h3 style="color: #38bdf8;">วันเกิดของคุณคือวันที่:</h3>
+            <h1 id="result-day" style="font-size: 60px; margin: 10px 0; color: #fbbf24;">?</h1>
+            <button id="btn-reset" class="btn btn-reset">เล่นอีกรอบ</button>
+        </div>
+    </div>
+
+    <!-- โค้ดภาษา Python จะรันตรงนี้ -->
+    <script type="mpy">
+        from pyscript import document
+
+        cards = [
+            {"base": 1, "nums": [d for d in range(1, 32) if d & 1]},
+            {"base": 2, "nums": [d for d in range(1, 32) if d & 2]},
+            {"base": 4, "nums": [d for d in range(1, 32) if d & 4]},
+            {"base": 8, "nums": [d for d in range(1, 32) if d & 8]},
+            {"base": 16, "nums": [d for d in range(1, 32) if d & 16]},
+        ]
+
+        current_idx = 0
+        total_day = 0
+
+        def show_card():
+            if current_idx < len(cards):
+                c = cards[current_idx]
+                document.getElementById("card-title").innerText = f"การ์ดใบที่ {current_idx + 1} / 5 (มีวันเกิดคุณไหม?)"
+                
+                nums_html = "".join([f'<div class="num-badge">{n}</div>' for n in c["nums"]])
+                document.getElementById("card-numbers").innerHTML = nums_html
+                
+                document.getElementById("btn-yes").style.display = "inline-block"
+                document.getElementById("btn-no").style.display = "inline-block"
+            else:
+                document.getElementById("game-container").style.display = "none"
+                document.getElementById("result-container").style.display = "block"
+                document.getElementById("result-day").innerText = str(total_day)
+
+        def on_yes(event):
+            global current_idx, total_day
+            total_day += cards[current_idx]["base"]
+            current_idx += 1
+            show_card()
+
+        def on_no(event):
+            global current_idx
+            current_idx += 1
+            show_card()
+
+        def on_reset(event):
+            global current_idx, total_day
+            current_idx = 0
+            total_day = 0
+            document.getElementById("result-container").style.display = "none"
+            document.getElementById("game-container").style.display = "block"
+            show_card()
+
+        document.getElementById("btn-yes").onclick = on_yes
+        document.getElementById("btn-no").onclick = on_no
+        document.getElementById("btn-reset").onclick = on_reset
+
+        show_card()
+    </script>
+</body>
+</html>
