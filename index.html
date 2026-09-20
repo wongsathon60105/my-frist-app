@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Binary Birthday Game</title>
-    <!-- โหลดไลบรารี PyScript -->
     <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css">
     <script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
     <style>
@@ -19,7 +18,6 @@
     </style>
 </head>
 <body>
-
     <div class="card">
         <h2>🪄 เกมทายวันเกิดด้วย Python</h2>
         <div id="game-container">
@@ -37,7 +35,6 @@
         </div>
     </div>
 
-    <!-- โค้ดภาษา Python จะรันตรงนี้ -->
     <script type="mpy">
         from pyscript import document
 
@@ -56,10 +53,8 @@
             if current_idx < len(cards):
                 c = cards[current_idx]
                 document.getElementById("card-title").innerText = f"การ์ดใบที่ {current_idx + 1} / 5 (มีวันเกิดคุณไหม?)"
-                
                 nums_html = "".join([f'<div class="num-badge">{n}</div>' for n in c["nums"]])
                 document.getElementById("card-numbers").innerHTML = nums_html
-                
                 document.getElementById("btn-yes").style.display = "inline-block"
                 document.getElementById("btn-no").style.display = "inline-block"
             else:
