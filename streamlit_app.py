@@ -1,88 +1,91 @@
-import streamlit as st
-import numpy as np
-import matplotlib.pyplot as plt
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binary Birthday Game</title>
+    <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css">
+    <script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
+    <style>
+        body { font-family: sans-serif; background: #0f172a; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+        .card { background: #1e293b; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); text-align: center; max-width: 450px; width: 90%; }
+        .numbers { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 20px 0; }
+        .num-badge { background: #334155; padding: 8px; border-radius: 6px; font-weight: bold; }
+        .btn { padding: 10px 20px; font-size: 16px; border: none; border-radius: 6px; cursor: pointer; margin: 5px; font-weight: bold; }
+        .btn-yes { background: #10b981; color: white; }
+        .btn-no { background: #ef4444; color: white; }
+        .btn-reset { background: #3b82f6; color: white; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>🪄 เกมทายวันเกิดด้วย Python</h2>
+        <div id="game-container">
+            <h3 id="card-title">กำลังโหลด Python...</h3>
+            <div id="card-numbers" class="numbers"></div>
+            <div>
+                <button id="btn-yes" class="btn btn-yes" style="display:none;">มีวันเกิดฉัน (Yes)</button>
+                <button id="btn-no" class="btn btn-no" style="display:none;">ไม่มี (No)</button>
+            </div>
+        </div>
+        <div id="result-container" style="display:none;">
+            <h3 style="color: #38bdf8;">วันเกิดของคุณคือวันที่:</h3>
+            <h1 id="result-day" style="font-size: 60px; margin: 10px 0; color: #fbbf24;">?</h1>
+            <button id="btn-reset" class="btn btn-reset">เล่นอีกรอบ</button>
+        </div>
+    </div>
 
-st.set_page_config(page_title="Math Function Plotter", page_icon="📈", layout="centered")
+    <script type="mpy">
+        from pyscript import document
 
-st.title("📈 Simple Function Plotter")
-st.write("พิมพ์ฟังก์ชันคณิตศาสตร์ $f(x)$ ที่ต้องการ เพื่อคำนวณและวาดกราฟทันที")
+        cards = [
+            {"base": 1, "nums": [d for d in range(1, 32) if d & 1]},
+            {"base": 2, "nums": [d for d in range(1, 32) if d & 2]},
+            {"base": 4, "nums": [d for d in range(1, 32) if d & 4]},
+            {"base": 8, "nums": [d for d in range(1, 32) if d & 8]},
+            {"base": 16, "nums": [d for d in range(1, 32) if d & 16]},
+        ]
 
-# แผงตั้งค่าแกน X และ แกน Y
-with st.expander("⚙️ ปรับแต่งช่วงแกน X และ แกน Y", expanded=True):
-    col_x1, col_x2 = st.columns(2)
-    with col_x1:
-        x_min = st.number_input("x ต่ำสุด (Min)", value=-10.0, step=1.0)
-    with col_x2:
-        x_max = st.number_input("x สูงสุด (Max)", value=10.0, step=1.0)
+        current_idx = 0
+        total_day = 0
 
-    # ตัวเลือกควบคุมแกน Y
-    custom_y = st.checkbox("กำหนดช่วงแกน Y เอง (ไม่ใช้ Auto-scale)", value=False)
-    
-    y_min, y_max = None, None
-    if custom_y:
-        col_y1, col_y2 = st.columns(2)
-        with col_y1:
-            y_min = st.number_input("y ต่ำสุด (Min)", value=-50.0, step=5.0)
-        with col_y2:
-            y_max = st.number_input("y สูงสุด (Max)", value=100.0, step=5.0)
+        def show_card():
+            if current_idx < len(cards):
+                c = cards[current_idx]
+                document.getElementById("card-title").innerText = f"การ์ดใบที่ {current_idx + 1} / 5 (มีวันเกิดคุณไหม?)"
+                nums_html = "".join([f'<div class="num-badge">{n}</div>' for n in c["nums"]])
+                document.getElementById("card-numbers").innerHTML = nums_html
+                document.getElementById("btn-yes").style.display = "inline-block"
+                document.getElementById("btn-no").style.display = "inline-block"
+            else:
+                document.getElementById("game-container").style.display = "none"
+                document.getElementById("result-container").style.display = "block"
+                document.getElementById("result-day").innerText = str(total_day)
 
-# ช่องรับฟังก์ชัน
-func_input = st.text_input(
-    "พิมพ์ฟังก์ชัน f(x):",
-    value="x**2",
-    help="เช่น x**2, sin(x), exp(x), x**3 - 5*x"
-)
-st.caption("💡 ตัวอย่าง: `x**2`, `sin(x) * 10`, `exp(x)`, `x**3 - 4*x`")
+        def on_yes(event):
+            global current_idx, total_day
+            total_day += cards[current_idx]["base"]
+            current_idx += 1
+            show_card()
 
-# ตรวจสอบความถูกต้องของช่วงแกน
-if x_min >= x_max:
-    st.error("ค่า 'x ต่ำสุด' ต้องน้อยกว่า 'x สูงสุด'")
-elif custom_y and y_min >= y_max:
-    st.error("ค่า 'y ต่ำสุด' ต้องน้อยกว่า 'y สูงสุด'")
-else:
-    try:
-        # สุ่มจุดแกน X
-        x = np.linspace(x_min, x_max, 500)
+        def on_no(event):
+            global current_idx
+            current_idx += 1
+            show_card()
 
-        safe_dict = {
-            "x": x,
-            "np": np,
-            "sin": np.sin,
-            "cos": np.cos,
-            "tan": np.tan,
-            "exp": np.exp,
-            "log": np.log,
-            "sqrt": np.sqrt,
-            "abs": np.abs,
-            "pi": np.pi,
-            "e": np.e,
-        }
+        def on_reset(event):
+            global current_idx, total_day
+            current_idx = 0
+            total_day = 0
+            document.getElementById("result-container").style.display = "none"
+            document.getElementById("game-container").style.display = "block"
+            show_card()
 
-        # คำนวณค่า y
-        y = eval(func_input, {"__builtins__": {}}, safe_dict)
+        document.getElementById("btn-yes").onclick = on_yes
+        document.getElementById("btn-no").onclick = on_no
+        document.getElementById("btn-reset").onclick = on_reset
 
-        # วาดกราฟด้วย Matplotlib
-        fig, ax = plt.subplots(figsize=(8, 4.5))
-        ax.plot(x, y, label=f"$f(x) = {func_input}$", color="#1f77b4", linewidth=2)
-
-        # ลากเส้นแกน 0 กลางกราฟเพื่อให้อ่านง่าย
-        ax.axhline(0, color="gray", linestyle="--", linewidth=0.8, alpha=0.7)
-        ax.axvline(0, color="gray", linestyle="--", linewidth=0.8, alpha=0.7)
-
-        # ล็อกช่วงแกน Y ถ้าผู้ใช้เลือก
-        if custom_y:
-            ax.set_ylim(y_min, y_max)
-
-        ax.set_xlim(x_min, x_max)
-        ax.set_xlabel("x")
-        ax.set_ylabel("f(x)")
-        ax.grid(True, linestyle=":", alpha=0.6)
-        ax.legend()
-
-        # แสดงผลกราฟบน Streamlit
-        st.pyplot(fig)
-
-    except ZeroDivisionError:
-        st.error("เกิดข้อผิดพลาด: มีการหารด้วยศูนย์")
-    except Exception as e:
-        st.error(f"รูปแบบฟังก์ชันไม่ถูกต้อง: {e}")
+        show_card()
+    </script>
+</body>
+</html>
