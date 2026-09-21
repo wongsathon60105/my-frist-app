@@ -2,7 +2,7 @@ import streamlit as st
 
 st.set_page_config(page_title="Binary Birthday Game", page_icon="🪄", layout="centered")
 
-st.title("🪄 เกมทายวันเกิดด้วยคณิตศาสตร์")
+st.title("🪄 What is your Brith Day!!")
 
 # สร้างการ์ดทั้ง 5 ใบ โดยแต่ละใบมีเลขที่ bit นั้นๆ ถูกเปิดอยู่
 cards = [
@@ -50,7 +50,7 @@ if idx < len(cards):
     col_yes, col_no = st.columns(2)
     with col_yes:
         st.button(
-            "✅ มี (Yes)",
+            "✅ YES",
             use_container_width=True,
             type="primary",
             on_click=go_next,
@@ -58,7 +58,7 @@ if idx < len(cards):
         )
     with col_no:
         st.button(
-            "❌ ไม่มี (No)",
+            "❌ NO",
             use_container_width=True,
             on_click=go_next,
             args=(0,),
